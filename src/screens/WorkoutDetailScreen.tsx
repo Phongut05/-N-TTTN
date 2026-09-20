@@ -86,8 +86,8 @@ export default function WorkoutDetailScreen({ programId, userId, onClose, onComp
     setIsFinished(true);
     
     try {
-      // Lưu vào ngày mục tiêu thay vì luôn lưu vào "hôm nay"
-      const streak = await completeWorkoutSession(programId, calories, targetDateStr);
+      // Đã bổ sung userId vào tham số truyền đi để tính Streak chính xác
+      const streak = await completeWorkoutSession(programId, calories, targetDateStr, userId);
       
       Alert.alert(
         'Hoàn thành!',
