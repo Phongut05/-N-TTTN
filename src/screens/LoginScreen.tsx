@@ -58,7 +58,7 @@ const EmailInput = memo(({ value, onChangeText, onSubmitEditing, focused, onFocu
       />
       <TextInput
         style={styles.input}
-        placeholder="nhutdeptrai@gmail.com"
+        placeholder="abc123@gmail.com"
         placeholderTextColor="rgba(196, 201, 174, 0.5)"
         value={value}
         onChangeText={onChangeText}
