@@ -1,4 +1,4 @@
-import { cacheDirectory, writeAsStringAsync } from 'expo-file-system/legacy'
+import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
 import * as XLSX from 'xlsx'
 import type { UserDataExport } from '../services/accountService'
@@ -348,12 +348,9 @@ export async function shareUserDataExcel(data: UserDataExport): Promise<string> 
   const workbook = buildUserDataWorkbook(data)
   const base64 = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' })
   const stamp = new Date().toISOString().slice(0, 10)
-  if (!cacheDirectory) {
-    throw new Error('Không thể tạo file tạm trên thiết bị này.')
-  }
-  const fileUri = `${cacheDirectory}fitlife-export-${stamp}.xlsx`
+  const fileUri = `${FileSystem.cacheDirectory}fitlife-export-${stamp}.xlsx`
 
-  await writeAsStringAsync(fileUri, base64, { encoding: 'base64' })
+  await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 })
 
   const canShare = await Sharing.isAvailableAsync()
   if (!canShare) {

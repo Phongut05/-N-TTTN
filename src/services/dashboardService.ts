@@ -7,6 +7,7 @@ import { supabase } from '../../utils/supabase';
 import { getProfile } from './healthService';
 import { getDailyNutrition } from './nutritionService';
 import { getTodayWater } from './waterService';
+import { getUserStreak } from '../lib/workoutService';
 import { localDateDaysAgo, normalizeDateString, toLocalDateString } from '../lib/dateUtils';
 import { buildEmptyWeekly, normalizeWeeklyWorkouts } from '../lib/weeklyWorkoutUtils';
 import type { DashboardSummary, WeeklyWorkoutDay } from '../types';
@@ -22,13 +23,9 @@ async function buildDashboardSummaryClient(userId: string): Promise<DashboardSum
   const today = toLocalDateString();
   const weekStart = localDateDaysAgo(6);
 
-  const [profile, streakResult, sessionsResult] = await Promise.all([
+  const [profile, streakVal, sessionsResult] = await Promise.all([
     getProfile(userId),
-    supabase
-      .from('user_streaks')
-      .select('current_streak, longest_streak')
-      .eq('user_id', userId)
-      .maybeSingle(),
+    getUserStreak(userId),
     supabase
       .from('workout_sessions')
       .select('workout_date, total_calories')
@@ -54,8 +51,8 @@ async function buildDashboardSummaryClient(userId: string): Promise<DashboardSum
 
   return {
     display_name: profile?.display_name ?? null,
-    current_streak: streakResult.data?.current_streak ?? 0,
-    longest_streak: streakResult.data?.longest_streak ?? 0,
+    current_streak: streakVal,
+    longest_streak: streakVal, // Fallback simplified
     calories_burned_today: todaySessions.reduce(
       (sum, row) => sum + Number(row.total_calories ?? 0),
       0,
@@ -71,18 +68,10 @@ async function buildDashboardSummaryClient(userId: string): Promise<DashboardSum
 
 /**
  * Lấy toàn bộ số liệu Dashboard trong một lần gọi.
- * Sau RPC, chuẩn hóa weekly_workouts để biểu đồ luôn có đủ 7 ngày theo timezone thiết bị.
+ * Đã ép sử dụng logic Client để đảm bảo đồng bộ với màn hình Lịch tập.
  */
 export async function getDashboardSummary(userId: string): Promise<DashboardSummary> {
-  const { data, error } = await supabase.rpc('get_dashboard_summary');
-  if (!error && data) {
-    const summary = data as DashboardSummary;
-    return {
-      ...summary,
-      weekly_workouts: normalizeWeeklyWorkouts(summary.weekly_workouts),
-    };
-  }
-
+  // Bỏ qua RPC và chạy thẳng logic build tại Client để lấy đúng con số Streak
   return buildDashboardSummaryClient(userId);
 }
 

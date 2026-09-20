@@ -47,9 +47,16 @@ function calculateActualStreak(history: string[]): number {
   let checkDate = new Date();
   checkDate.setHours(0, 0, 0, 0);
 
-  // Nếu hôm nay chưa tập, tính từ hôm qua
-  if (!(checkDate.getDay() === 2 || checkDate.getDay() === 6) && !historySet.has(todayStr)) {
-    checkDate.setDate(checkDate.getDate() - 1);
+  // Nới lỏng logic: Nếu ngày tập cuối cùng cách đây dưới 3 ngày, vẫn giữ streak
+  const lastDate = Array.from(historySet).sort().reverse()[0];
+  if (lastDate) {
+    const lastDateObj = new Date(lastDate);
+    const diffDays = Math.floor((new Date().getTime() - lastDateObj.getTime()) / (1000 * 3600 * 24));
+    if (diffDays > 2) {
+      // Chỉ khi nghỉ quá 2 ngày mới thực sự reset về 0
+    } else {
+      checkDate = lastDateObj;
+    }
   }
 
   for (let i = 0; i < 100; i++) {
